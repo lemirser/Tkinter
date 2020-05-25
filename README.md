@@ -9,13 +9,13 @@ Tkinter description directly from the youtube playlist:
 ## Creating Python Environment
 1. Install `pipenv`.
 ```
-$ cd \path\of\of\your\project\
+$ cd \path\of\your\project\
 $ pip3 install pipenv
 $ pipenv install pillow
 ```
 2. Activate the environment
 ```
-$ cd \path\of\of\your\project\
+$ cd \path\of\your\project\
 $ pipenv shell
 ```
 
