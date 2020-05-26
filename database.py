@@ -69,13 +69,15 @@ def query():
 
     print_record = ""
     for result in results:
-        print_record += f"Oid: {result[0]}\n\
-        First Name: {result[1]}\n\
-        Last Name: {result[2]}\n\
-        Address: {result[3]}\n\
-        City: {result[4]}\n\
-        State: {result[5]}\n\
-        Zipcode: {result[6]}\n\n"
+        print_record += (
+            f"Oid: {result[0]}\n"
+            f"First Name: {result[1]}\n"
+            f"Last Name: {result[2]}\n"
+            f"Address: {result[3]}\n"
+            f"City: {result[4]}\n"
+            f"State: {result[5]}\n"
+            f"Zipcode: {result[6]}\n\n"
+        )
 
     queryLabel = Label(root, text=print_record)
     queryLabel.grid(row=8, column=0, columnspan=2, sticky="W")
