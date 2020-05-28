@@ -21,8 +21,11 @@ def is_submit():
     """
     Function to insert user details in the database.
     """
+    global queryLabel
 
-    global f_name, l_name, address, city, state, zipcode
+    queryLabel.destroy()
+
+    queryLabel = Label(root, text="", justify=CENTER)
 
     fname = f_name.get()
     lname = l_name.get()
@@ -30,23 +33,42 @@ def is_submit():
     cit = city.get()
     stat = state.get()
     zipc = zipcode.get()
+    print(f_name.get())
+    if (
+        fname != ''
+        and lname != ''
+        and add != ''
+        and cit != ''
+        and stat != ''
+        and zipc != ''
+    ):
+        conn = sqlite3.connect("address_book.db")
 
-    conn = sqlite3.connect("address_book.db")
+        # Create cursor instance
+        c = conn.cursor()
 
-    # Create cursor instance
-    c = conn.cursor()
+        # Insert data
+        c.execute(
+            "INSERT INTO address VALUES (:f_name, :l_name, :address, :city, :state, :zipcode)",
+            {"f_name": fname, "l_name": lname, "address": add, "city": cit, "state": stat, "zipcode": zipc,},
+        )
 
-    # Insert data
-    c.execute(
-        "INSERT INTO address VALUES (:f_name, :l_name, :address, :city, :state, :zipcode)",
-        {"f_name": fname, "l_name": lname, "address": add, "city": cit, "state": stat, "zipcode": zipc,},
-    )
+        # Commit chaches
+        conn.commit()
 
-    # Commit chaches
-    conn.commit()
+        # Close connection
+        conn.close()
 
-    # Close connection
-    conn.close()
+        f_name.delete(0, END)
+        l_name.delete(0, END)
+        address.delete(0, END)
+        city.delete(0, END)
+        state.delete(0, END)
+        zipcode.delete(0, END)
+        queryLabel.configure(text="Successfully inserted data!")
+    else:
+        queryLabel.configure(text="All fields are required!")
+    queryLabel.grid(row=12, column=0, columnspan=2)
 
 
 def get_user():
@@ -100,21 +122,26 @@ def show_users():
     global queryLabel
     res = get_user()
 
-    print(res)
-
     queryLabel.destroy()
 
     queryLabel = Label(root, text=res, justify=LEFT)
-    queryLabel.grid(row=12, column=0, columnspan=2, sticky=W)
+
+    if res:
+        queryLabel.configure(text=res)
+    else:
+        queryLabel = Label(root, text=res, justify=CENTER)
+        queryLabel.configure(text="No user found!")
+    queryLabel.grid(row=12, column=0, columnspan=2)
 
 
 def delete_user():
     """
     Delete a user if it's in the database
     """
-    global searchbox_oid
     global queryLabel
+
     queryLabel.destroy()
+
     is_user = get_user()
 
     oid = searchbox_oid.get()
@@ -152,57 +179,39 @@ def delete_user():
     queryLabel.grid(row=12, column=0, columnspan=2)
 
 
-def edit_user():
-    editor = Tk()
-    editor.title("Tkinter App/ Edit user")
-    editor.iconbitmap("icons/gor.ico")
-    editor.minsize(300, 250)  # root.geometry("400x400")
-
-    global f_name_editor, l_name_editor, address_editor, city_editor, state_editor, zipcode_editor
-
-    # Button widgets
-    submitButton_editor = Button(editor, text="Save")
-
-    # Entry widgets
-    f_name_editor = Entry(editor, width=30)
-    l_name_editor = Entry(editor, width=30)
-    address_editor = Entry(editor, width=30)
-    city_editor = Entry(editor, width=30)
-    state_editor = Entry(editor, width=30)
-    zipcode_editor = Entry(editor, width=30)
-
-    # Label widgets
-    f_nameLabel_editor = Label(editor, text="First name: ")
-    l_nameLabel_editor = Label(editor, text="Last name: ")
-    addressLabel_editor = Label(editor, text="Address: ")
-    cityLabel_editor = Label(editor, text="City: ")
-    stateLabel_editor = Label(editor, text="State: ")
-    zipcodeLabel_editor = Label(editor, text="Zipcode: ")
-
-    # Grids
-    f_nameLabel_editor.grid(row=0, column=0, sticky="W", pady=(10, 0))
-    l_nameLabel_editor.grid(row=1, column=0, sticky="W")
-    addressLabel_editor.grid(row=2, column=0, sticky="W")
-    cityLabel_editor.grid(row=3, column=0, sticky="W")
-    stateLabel_editor.grid(row=4, column=0, sticky="W")
-    zipcodeLabel_editor.grid(row=5, column=0, sticky="W")
-
-    f_name_editor.grid(row=0, column=1, columnspan=2, padx=20, pady=(10, 0))
-    l_name_editor.grid(row=1, column=1, columnspan=2, padx=20)
-    address_editor.grid(row=2, column=1, columnspan=2, padx=20)
-    city_editor.grid(row=3, column=1, columnspan=2, padx=20)
-    state_editor.grid(row=4, column=1, columnspan=2, padx=20)
-    zipcode_editor.grid(row=5, column=1, columnspan=2, padx=20)
+def update_user():
+    oid = searchbox_oid.get()
 
     conn = sqlite3.connect("address_book.db")
 
     # Create cursor instance
     c = conn.cursor()
 
+    # Insert data
     c.execute(
-        "SELECT * FROM address WHERE oid = :oid;", {"oid": searchbox_oid.get()},
+        """
+    UPDATE
+        address
+    SET
+        first_name = :f_name,
+        last_name = :l_name,
+        address = :address,
+        city = :city,
+        state = :state,
+        zipcode = :zipcode
+    WHERE
+        oid = :oid;
+    """,
+        {
+            "f_name": f_name_editor.get(),
+            "l_name": l_name_editor.get(),
+            "address": address_editor.get(),
+            "city": city_editor.get(),
+            "state": state_editor.get(),
+            "zipcode": zipcode_editor.get(),
+            "oid": oid,
+        },
     )
-    result = c.fetchone()
 
     # Commit chaches
     conn.commit()
@@ -210,14 +219,91 @@ def edit_user():
     # Close connection
     conn.close()
 
-    f_name_editor.insert(0, result[0])
-    l_name_editor.insert(0, result[1])
-    address_editor.insert(0, result[2])
-    city_editor.insert(0, result[3])
-    state_editor.insert(0, result[4])
-    zipcode_editor.insert(0, result[5])
-    # Grid
-    submitButton_editor.grid(row=6, column=0, columnspan=2, pady=10, padx=10, ipadx=110)
+    editor.destroy()
+
+
+def edit_user():
+    global f_name_editor, l_name_editor, address_editor, city_editor, state_editor, zipcode_editor, editor, queryLabel
+
+    queryLabel.destroy()
+
+    oid = searchbox_oid.get()
+
+    is_user = get_user()
+
+    queryLabel = Label(root, text="", justify=CENTER)
+
+    if oid:
+        if is_user:
+            editor = Tk()
+            editor.title("Tkinter App/ Edit user")
+            editor.iconbitmap("icons/gor.ico")
+            editor.minsize(300, 250)  # root.geometry("400x400")
+
+            # Button widgets
+            submitButton_editor = Button(editor, text="Save", command=update_user)
+
+            # Entry widgets
+            f_name_editor = Entry(editor, width=30)
+            l_name_editor = Entry(editor, width=30)
+            address_editor = Entry(editor, width=30)
+            city_editor = Entry(editor, width=30)
+            state_editor = Entry(editor, width=30)
+            zipcode_editor = Entry(editor, width=30)
+
+            # Label widgets
+            f_nameLabel_editor = Label(editor, text="First name: ")
+            l_nameLabel_editor = Label(editor, text="Last name: ")
+            addressLabel_editor = Label(editor, text="Address: ")
+            cityLabel_editor = Label(editor, text="City: ")
+            stateLabel_editor = Label(editor, text="State: ")
+            zipcodeLabel_editor = Label(editor, text="Zipcode: ")
+
+            # Grids
+            f_nameLabel_editor.grid(row=0, column=0, sticky="W", pady=(10, 0))
+            l_nameLabel_editor.grid(row=1, column=0, sticky="W")
+            addressLabel_editor.grid(row=2, column=0, sticky="W")
+            cityLabel_editor.grid(row=3, column=0, sticky="W")
+            stateLabel_editor.grid(row=4, column=0, sticky="W")
+            zipcodeLabel_editor.grid(row=5, column=0, sticky="W")
+
+            f_name_editor.grid(row=0, column=1, columnspan=2, padx=20, pady=(10, 0))
+            l_name_editor.grid(row=1, column=1, columnspan=2, padx=20)
+            address_editor.grid(row=2, column=1, columnspan=2, padx=20)
+            city_editor.grid(row=3, column=1, columnspan=2, padx=20)
+            state_editor.grid(row=4, column=1, columnspan=2, padx=20)
+            zipcode_editor.grid(row=5, column=1, columnspan=2, padx=20)
+
+            submitButton_editor.grid(row=6, column=0, columnspan=2, pady=10, padx=10, ipadx=110)
+
+            conn = sqlite3.connect("address_book.db")
+
+            # Create cursor instance
+            c = conn.cursor()
+
+            c.execute(
+                "SELECT * FROM address WHERE oid = :oid;", {"oid": searchbox_oid.get()},
+            )
+            result = c.fetchone()
+
+            # Commit chaches
+            conn.commit()
+
+            # Close connection
+            conn.close()
+
+            f_name_editor.insert(0, result[0])
+            l_name_editor.insert(0, result[1])
+            address_editor.insert(0, result[2])
+            city_editor.insert(0, result[3])
+            state_editor.insert(0, result[4])
+            zipcode_editor.insert(0, result[5])
+        elif is_user is None:
+            queryLabel.configure(text="No user found!")
+    else:
+        queryLabel.configure(text="User OID is required!")
+
+    queryLabel.grid(row=12, column=0, columnspan=2)
 
 
 def clear_entry(event):
