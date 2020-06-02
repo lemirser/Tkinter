@@ -7,13 +7,13 @@ root = Tk()
 root.title("Tkinter App")
 root.iconbitmap("icons/gor.ico")
 # root.minsize(300, 250)
-root.geometry("600x100")
+root.geometry("750x100")
 
 
 def getZip():
     try:
         api_request = requests.get(
-            f"http://www.airnowapi.org/aq/forecast/zipCode/?format=application/json&zipCode={zip.get()}&date=2020-06-01&distance=5&API_KEY=FCD00D59-7954-4D65-813D-837392E665FC"
+            f"http://www.airnowapi.org/aq/forecast/zipCode/?format=application/json&zipCode={zip.get()}&date=2020-05-27&distance=5&API_KEY=FCD00D59-7954-4D65-813D-837392E665FC"
         )
         api = json.loads(api_request.content)
         city = api[0]["ReportingArea"]
@@ -25,13 +25,13 @@ def getZip():
         elif category == "Moderate":
             bg_color = "#FFFF00"
         elif category == "Unhealthy for Sensitive Groups":
-            bg_color = "#ff900"
+            bg_color = "#ff7e00"
         elif category == "Unhealthy":
             bg_color = "#FF0000"
         elif category == "Very Unhealthy":
-            bg_color = "#990066"
+            bg_color = "#8f3f97"
         elif category == "Hazardous":
-            bg_color = "#660000"
+            bg_color = "#7e0023"
     except Exception as e:
         api = f"Error encountered: {e}"
         print(api)
